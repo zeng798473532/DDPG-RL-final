@@ -1,0 +1,227 @@
+%Dette er en helt simpel skabelon, som kan bruges til at skrive almindelige
+%afleveringer i. Koden er bevidst lavet så ukompliceret som muligt,
+%så dokumentet samtidigt kan bruges som en indgang til at læse LaTeX at kende.
+%这是一个简单的模板，可以用来编写普通的
+%代码被刻意设计得尽可能简单，
+%这样文档就可以同时作为一个条目来阅读和了解。
+
+
+%---------------------------------------------------------
+%Dette er kun preample. Det behøver du ikke bekymre dig om. Går ned til der står "Start her". Eller til der hvor sidehovedet indstilles.
+% 这些只是前照灯。你不必为此担心。直到写着“从这里开始”或设置侧面头部的位置。
+%---------------------------------------------------------
+\documentclass[a4paper,12pt,oneside,article]{memoir}
+% lidt marginer
+\setlrmarginsandblock{3cm}{*}{1}
+\setulmarginsandblock{3cm}{*}{1}
+\setheadfoot{2cm}{\footskip}          % mere højde til sidehovedet
+\checkandfixthelayout[nearest]
+
+%Fjerner parindent ved nyt afsnit按新节删除配对项
+\setlength{\parindent}{0pt}
+
+% Standard dansk opsætning标准丹麦语设置
+
+\usepackage{graphicx}
+\usepackage{pythonhighlight}
+%\usepackage[utf8]{inputenc}   %æøå med utf8-encoding
+\usepackage[UTF8]{ctex} % 中文：使用XeLaTeX 原来默认是pdfLaTeX，换了之后行距变大了！
+\usepackage[danish]{babel}            % dansk opsætning
+\renewcommand\danishhyphenmins{22}    % fikser en fejl i babel
+\usepackage[T1]{fontenc} %fontencoding
+\usepackage{lmodern} %sætter skrifttypen til Latin Modern将字体设置为拉丁现代
+\usepackage{icomma}%Sørger for at man kan bruge komma som decimalseperator可以使用逗号作为小数点分隔符
+
+% Matematiske symboler og fede tegn i ligninger 方程中的数学符号和粗体字符
+\usepackage{amsmath, amssymb, bm, mathtools, mathdots}
+
+%Flere mulighder for understregning更多下划线选项
+\usepackage[normalem]{ulem}
+
+% Tabeller og søjler表和列
+\usepackage{array, booktabs, tabularx}
+
+% Figurer og farver数字和颜色
+\usepackage{graphicx, caption, subfig, xcolor}
+\captionsetup{font=small,labelfont=bf}
+
+%--------------------------------------------------------
+%Her sættes sidehoved og sidefod. Skriv dit eget navn ind.
+% 在这里设置页眉和页脚。输入您自己的姓名。
+%--------------------------------------------------------
+
+% Sidehoved og -fod
+\makepagestyle{mypagestyle} %Min pagestyle med sidetal我的带有页码的页面样式
+\copypagestyle{mypagestyle}{empty}
+\makeoddhead{mypagestyle}{Zeng\\Lingzhe}{\quad}{\today\\Fag}
+\makeheadrule{mypagestyle}{\textwidth}{\normalrulethickness}
+\makeoddfoot{mypagestyle}{}{\thepage~af~\thelastpage}{} %Kræver to oversættelser需要两个翻译
+
+\pagestyle{mypagestyle} %aktiver ny sidehoved/-fod激活新的页眉/页脚
+
+%Punktopstilling
+\usepackage{enumerate}
+
+%Enheder设备
+\usepackage[output-decimal-marker={,}]{siunitx}
+
+%Talmængder数量
+\newcommand{\R}{\mathbb{R}} %\R for reelle tal实数
+\newcommand{\C}{\mathbb{C}} %\C for komplekse tal复数
+\newcommand{\N}{\mathbb{N}} %\N for naturlige tal自然数
+\newcommand{\Z}{\mathbb{Z}} %\Z for hele tal整数
+\newcommand{\Q}{\mathbb{Q}} %\Q for rationale tal有理数
+\newcommand{\dg}{^{\circ}}%Brug \dg til at indsætte gradtegn使用\dg插入渐变
+\newcommand{\mybold}[1]{\paragraph{#1.}} % 行首加粗关键字
+
+
+%Til hyperlinks
+\usepackage[hidelinks=true]{hyperref}
+
+\begin{document}%Her begynder indholdet af dokumentet.
+
+%-------------------------------------------
+%START HER!
+%-------------------------------------------
+% \begin{center}
+% title
+% mytit
+% \end{center}
+\title {Reproducibility report of "Continuous control with deep Reinforcement Learning"}
+\author{19335010   ZENG LINGZHE}
+\date{2022-1-10}
+\maketitle\thispagestyle{mypagestyle}
+
+\chapter{Introduction}
+In previous courses, we learned the basic algorithms of reinforce learning, such as Q-learning, Sarsa, DQN. These algorithms usually perform well when they are used to solve the discrete problem. But the problems with a continuous action space act like a obstacle. One traditional method is to convert the continuous problem into the discrete problem by select several fixed values in the action space to approximate the hold action space. But beyond all doubt, it has a low performance due to the smaller domain. Besides, if the action space is large and has more dimensions, we have to choose more discrete action to get a better approach to the origin problem, resulting in a huge Q-table to compute. The Paper "Continuous control with deep Reinforcement Learning", which we will reproduce, propose the ideas that adapt the DQN to the continuous action domain. It mainly contains the ideas about actor-critic, deterministic policy gradient replay memory and so on.We reproduce the DDPG algorithm presented in this paper with Pytorch and use the simple game in Gym Library to validate our implementation. Then we will discuss the problems in the process of implementation.
+
+\chapter{Scope of reproducibility}
+DDPG is an acronym for "Deep Deterministic Policy Gradient", mainly used to settle the problems that receive continuous variables as the input. Deep means that we use deep neural network to build our model, and Deterministic Policy implies that we will get a deterministic action output from our model based on the experience from the histories and the current state. A significant mission of the learning in the continuous space is exploration. The model will output the deterministic policy, signifying that this is the best policy that the model has learned. If we just make it into use, we maybe trap into the local optimum. So exploration is a indispensable process in our model training. In the paper, author point out that the Ornstein-Uhlenbeck process has a better exploration efficiency in the physical control problems with inertia. Other available choice is Gauss.
+
+1. We will compare these two noises in our reproduction. \\
+2. we will use multi environment to test our model.**********TODO
+
+\chapter{Methodology}
+The first method that combine Q-learning and deep neural network is NIPS DQN. It's mainly used to solve the problems with the discrete input space. It use a deep neural network to get an approximation of the Q-table. Its core formulas are shown below:
+\begin{equation*}
+\epsilon \text{-greedy for action } a_t=\max_a Q^*(\phi(s_t), a;\theta)
+\end{equation*}
+\begin{equation*}
+y_j=
+	\begin{cases}
+	r_j & \phi_{j+1} \text{ is done.}\\
+	r_j+\gamma \max_{a'}Q(\phi_{j+1},a';\theta) & \phi_{j+1} \text{ is not done.}
+	\end{cases}
+\end{equation*}
+\begin{equation*}
+Loss = (y_i - Q(\phi_j,a;\theta))^2
+\end{equation*}
+which $\phi_j$ is the state at time $j$ and $Q$ is the function that estimate the q-value with neural network. Then more improved algorithms are put forward and have better performance, such as the Natural DQN, Double DQN and so on.
+
+As a contrast, the DDPG use a similar loss function to optimize the model when facing with the continuous problems. The original algorithm is just as follows.
+
+\begin{center}
+\includegraphics[width=10cm]{DDPG.png}
+\captionof{figure}{DDPG Algorithm}\label{fig:smiley}
+\end{center}
+
+The main difference between DDPG and traditional DQN are the selection of action and the model structures. We will talk about that in more detail.
+
+\section{Model Descriptions}
+\mybold{Actor-Critic Network}
+The DDPG network contain two part. One is Critic network, responsible for generating reward values and evaluating the input action, which acts like the Q-table and DQN network said above. The other one is Actor network, taking charge of generating the upcoming action by the current state. First, the Actor network get the state and output a action. Then the Critic network will output the reward, Q-value in another word, after processing the current state and the action.These two network is define by several linear layers together with specific activation functions. The codes below clearly illustrate it.
+
+\begin{python}
+class Actor(nn.Module):
+    def __init__(self, state_dim, action_dim):
+        super().__init__()
+        self.linear1 = nn.Linear(state_dim, 256)
+        self.linear2 = nn.Linear(256, 64)
+        self.linear3 = nn.Linear(64, action_dim)
+
+    def forward(self, state):
+        y = F.relu(self.linear1(state))
+        y = F.relu(self.linear2(y))
+        y = torch.tanh(self.linear3(y))
+        return y
+
+class Critic(nn.Module):
+    def __init__(self, state_dim, action_dim):
+        super().__init__()
+        self.linear1 = nn.Linear(state_dim + action_dim, 256)
+        self.linear2 = nn.Linear(256, 64)
+        self.linear3 = nn.Linear(64, 1)
+
+    def forward(self, state, action):
+        x = torch.cat((state, action), dim=1)
+        x = F.relu(self.linear1(x))
+        x = F.relu(self.linear2(x))
+        x = self.linear3(x)
+        return x
+\end{python}
+
+\mybold{Target Network}
+If we only use single network, then we will find that the target value $y$ and the network we need to update is the same one, making the model easier to diverge. So a standalone target network is necessary. In another word, we have 4 networks in our model: Actor, Critic, Actor-target, Critic-target. Actor, Critic network can also be call policy network. The author make a small modification that the target network should be soft-update rather than directly copy the weights from the policy network. This will lead to tiny change to the target network and make the training more steady. The process of soft-update is as follows. First we need to define a parameter $\tau$, then we update all the weight in target network by calculate $\bm{w}_{target} = \tau \bm{w}_{policy} + (1 - \tau) \bm{w}_{target}$, where $w_{policy}$.
+
+\mybold{Replay Memory Pool}
+In traditional deep learning, we usually have a training set to learn the model weights. While in DDPG, we also need to "build" a training set, called Replay Memory Pool. At every step, we store the current state, action, reward, next action ($s_i, a_i, r_i, s_{i+1}$) into the Replay Memory Pool. When learning, we sample a random mini-batch of $N$ transitions ($s_i, a_i, r_i, s_{i+1}$) from the Replay Memory Pool and use them to train our model. It need to point out that the pool size should be adjusted to fit with the job. If the pool size is too small, it means that we just learn from the recent transitions. If the pool size is too big, then it will waste storage space and learn slowly.
+
+
+\section{Test Toolkit}
+We use gym toolkit to assist us in training and testing. The gym library is a collection of test problems — environments — that we can use to work out the reinforcement learning algorithms, from basic physics control problems to robotic simulation. The environments have a shared interface, allowing us to write general algorithms. We choose two classic control problems to test our model's performance.
+\mybold{Pendulum} The inverted pendulum swing-up problem is a classic problem in the control literature. The pendulum starts in a random position, and the goal is to swing it up so it stays upright.
+\mybold{Mountain Car} A car is on a one-dimensional track, positioned between two "mountains". The goal is to drive up the mountain on the right; however, the car's engine is not strong enough to scale the mountain in a single pass. Therefore, the only way to succeed is to drive back and forth to build up momentum. The reward is greater if you spend less energy to reach the goal.
+
+\begin{center}
+\includegraphics[width=15cm]{gym.png}
+\captionof{figure}{Gym game: left is MountainCar, right is Pendulum}\label{fig:smiley}
+\end{center}
+
+\section{Basic Improvement}
+\mybold{Warm-up stage}At the beginning of the training, the Replay Memory Pool is too empty to satisfy a mini-batch. So we add a warm-up stage to fill in the Replay Memory Pool in advance. Owing to the untrained model weights, we suppose that random action is better in warm-up stage than using Actor output.
+\mybold{Noise decrease progressively}As we said above, noise is an essential part in the exploration period. It can prevent the agent to trap into local optimization and help it to find out the better weights. However, when learned for sufficient episode, noise will have a negative effect on convergence. So, we add a parameter epsilon $\epsilon$ to control the noise weight. In early episodes, the noise is big and as the training goes on, it weights will decrease until the minimum value is arrived. We use a simple exponential function to implement this process. The $\epsilon$ change curve is shown below.
+
+\begin{center}
+\includegraphics[width=8cm]{epsilon.png}
+\captionof{figure}{Gym game: left is MountainCar, right is Pendulum}\label{fig:smiley}
+\end{center}
+
+\section{Experiment Environment}
+Pytorch is an open source machine learning framework that help us simplify the coding and accelerate the training process. It provides many defined network layers and network optimizer. We use Linear layer to build our model and Adam optimizer to learn the model weights.Other software and hardware environments are listed below.
+\\\ \ Python:3.8.12
+\\\ \ Pytorch: 1.4.0+cu92
+\\\ \ Gym:0.21.0
+\\\ \ Hardware: Intel 9750H + Nvidia GTX 1050 3G in Win10
+
+
+\chapter{Results}
+The result demos can be found in our GitHub repository. In the Pendulum game, we can find that the agent make action badly, but after some episode, it learned a better policy to do the game. It can make the pendulum swing up in a short time. As for the Mountain-Car game, the car almost remain in the valley, and after some learning, it can achieve the goal perfectly. The rewards in the training and testing period are show below.
+
+
+As for the noise factor, we use Gauss and OU noise to compare the result. When considering the Pendulum game, we find that OU noise will make the action more wiggle. That is, the action will change frequently to maintain the pendulum swinging up. But Mountain-Car show similar with two noises.
+
+
+
+\chapter{Summary and Discussion}
+In summary, DDPG is a pioneering algorithm in reinforce learning. It span the control problem in the continuous space and give a practice solution. In many fields, DDPG can play a vital role, such as robot control, automatic driving, modern team game and so on.
+
+
+In the process of our reappearance, we also find some problems. For example, there is some probability that the rewards would suddenly slump when training. Second, some parameters should be changed to satisfy different missions. Third, there is still a question that whether these noise can help to escape from the local optimal solutions. We have to do more experiments to explore.
+
+
+\chapter*{References}
+
+[1] Mnih, Volodymyr et al. “Playing Atari with Deep Reinforcement Learning.” ArXiv abs/1312.5602 (2013): n. pag.
+
+[2] Mnih, Volodymyr, Kavukcuoglu, Koray, Silver, David, Rusu, Andrei A, Veness, Joel, Bellemare, Marc G, Graves, Alex, Riedmiller, Martin, Fidjeland, Andreas K, Ostrovski, Georg, et al. Humanlevel control through deep reinforcement learning. Nature, 518(7540):529–533, 2015.
+
+[3] Sutton, R. S. , et al. "Policy Gradient Methods for Reinforcement Learning with Function Approximation." Submitted to Advances in Neural Information Processing Systems 12(1999).
+
+[4] Silver, David , et al. "Deterministic Policy Gradient Algorithms." JMLR.org.
+
+
+
+%---------------------------------------------------------
+%Dokumentet er slut.
+%---------------------------------------------------------
+\end{document}%Alt efter denne linje kommer ikke med i dokumentet.
