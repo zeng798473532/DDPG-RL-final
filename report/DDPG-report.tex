@@ -80,6 +80,7 @@
 
 \begin{document}%Her begynder indholdet af dokumentet.
 
+\captionsetup[figure]{labelfont={bf},labelformat={default},labelsep=period,name={Fig.}}
 %-------------------------------------------
 %START HER!
 %-------------------------------------------
@@ -89,20 +90,21 @@
 % \end{center}
 \title {Reproducibility report of "Continuous control with deep Reinforcement Learning"}
 \author{19335010   ZENG LINGZHE}
-\date{2022-1-10}
+\date{2022-1-19}
 \maketitle\thispagestyle{mypagestyle}
 
 \chapter{Introduction}
-In previous courses, we learned the basic algorithms of reinforce learning, such as Q-learning, Sarsa, DQN. These algorithms usually perform well when they are used to solve the discrete problem. But the problems with a continuous action space act like a obstacle. One traditional method is to convert the continuous problem into the discrete problem by select several fixed values in the action space to approximate the hold action space. But beyond all doubt, it has a low performance due to the smaller domain. Besides, if the action space is large and has more dimensions, we have to choose more discrete action to get a better approach to the origin problem, resulting in a huge Q-table to compute. The Paper "Continuous control with deep Reinforcement Learning", which we will reproduce, propose the ideas that adapt the DQN to the continuous action domain. It mainly contains the ideas about actor-critic, deterministic policy gradient replay memory and so on.We reproduce the DDPG algorithm presented in this paper with Pytorch and use the simple game in Gym Library to validate our implementation. Then we will discuss the problems in the process of implementation.
+In previous courses, we learned the basic algorithms of reinforce learning, such as Q-learning, Sarsa, DQN. These algorithms usually perform well when they are used to solve the discrete problems. But the problems with a continuous action space act like a obstacle. One traditional method is to convert the continuous problems into the discrete problems by select several fixed values in the action space to approximate the whole action space. But beyond all doubt, it has a low performance due to the smaller domain. Besides, if the action space is large and has more dimensions, we have to choose more discrete action to get a better approach to the origin problem, resulting in a huge Q-table to compute. The paper "Continuous control with deep Reinforcement Learning", which we will reproduce, proposes the ideas that adapt the DQN to the continuous action domain. It mainly contains the ideas about actor-critic, deterministic policy gradient, replay memory and so on.We reproduce the DDPG algorithm presented in this paper with Pytorch and use the simple games in Gym Library to validate our implementation. Then we will discuss the problems in the process of implementation.
 
 \chapter{Scope of reproducibility}
-DDPG is an acronym for "Deep Deterministic Policy Gradient", mainly used to settle the problems that receive continuous variables as the input. Deep means that we use deep neural network to build our model, and Deterministic Policy implies that we will get a deterministic action output from our model based on the experience from the histories and the current state. A significant mission of the learning in the continuous space is exploration. The model will output the deterministic policy, signifying that this is the best policy that the model has learned. If we just make it into use, we maybe trap into the local optimum. So exploration is a indispensable process in our model training. In the paper, author point out that the Ornstein-Uhlenbeck process has a better exploration efficiency in the physical control problems with inertia. Other available choice is Gauss.
+DDPG is an acronym for "Deep Deterministic Policy Gradient", mainly used to settle the problems that receive continuous variables as the input. Deep means that we use a deep neural network to build our model, and Deterministic Policy implies that we will get a deterministic action output from our model based on the experience from the histories and the current state. A significant mission of learning in the continuous space is exploration. The model will output the deterministic policy, signifying that this is the best policy that the model has learned. If we just make it into use, we maybe trap into the local optimum. So exploration is a indispensable process in our model training. In the paper, author pointed out that the Ornstein-Uhlenbeck process has a better exploration efficiency in the physical control problems with inertia. Other available choice is Gauss. In this report, our main works are:
 
-1. We will compare these two noises in our reproduction. \\
-2. we will use multi environment to test our model.**********TODO
+1. We will compare these two noises in our reproduction.
+
+2. we will use multiple game environment to test our model.
 
 \chapter{Methodology}
-The first method that combine Q-learning and deep neural network is NIPS DQN. It's mainly used to solve the problems with the discrete input space. It use a deep neural network to get an approximation of the Q-table. Its core formulas are shown below:
+The first method that combines Q-learning and deep neural network is NIPS DQN. It's mainly used to solve the problems with the discrete input space. It uses a deep neural network to get an approximation of the Q-table. Its core formulas are shown below:
 \begin{equation*}
 \epsilon \text{-greedy for action } a_t=\max_a Q^*(\phi(s_t), a;\theta)
 \end{equation*}
@@ -116,7 +118,7 @@ y_j=
 \begin{equation*}
 Loss = (y_i - Q(\phi_j,a;\theta))^2
 \end{equation*}
-which $\phi_j$ is the state at time $j$ and $Q$ is the function that estimate the q-value with neural network. Then more improved algorithms are put forward and have better performance, such as the Natural DQN, Double DQN and so on.
+which $\phi_j$ is the state at time $j$ and $Q$ is the function that estimates the q-value with neural network. Then various improved algorithms are put forward and have better performance, such as the Natural DQN, Double DQN and so on.
 
 As a contrast, the DDPG use a similar loss function to optimize the model when facing with the continuous problems. The original algorithm is just as follows.
 
@@ -125,11 +127,11 @@ As a contrast, the DDPG use a similar loss function to optimize the model when f
 \captionof{figure}{DDPG Algorithm}\label{fig:smiley}
 \end{center}
 
-The main difference between DDPG and traditional DQN are the selection of action and the model structures. We will talk about that in more detail.
+The main difference between DDPG and traditional DQN are the selection of action and the model structures. We will talk about those in more detail.
 
 \section{Model Descriptions}
 \mybold{Actor-Critic Network}
-The DDPG network contain two part. One is Critic network, responsible for generating reward values and evaluating the input action, which acts like the Q-table and DQN network said above. The other one is Actor network, taking charge of generating the upcoming action by the current state. First, the Actor network get the state and output a action. Then the Critic network will output the reward, Q-value in another word, after processing the current state and the action.These two network is define by several linear layers together with specific activation functions. The codes below clearly illustrate it.
+The DDPG network contains two parts. One is Critic network, responsible for generating reward values and evaluating the input action, which acts like the Q-table and DQN network said above. The other one is Actor network, taking charge of generating the upcoming action by the current state. First, the Actor network get the state and output an action. Then the Critic network will output the reward, Q-value in another word, after processing the current state and the action. These two network is defined by several linear layers together with specific activation functions. The codes below clearly illustrate it.
 
 \begin{python}
 class Actor(nn.Module):
@@ -161,10 +163,10 @@ class Critic(nn.Module):
 \end{python}
 
 \mybold{Target Network}
-If we only use single network, then we will find that the target value $y$ and the network we need to update is the same one, making the model easier to diverge. So a standalone target network is necessary. In another word, we have 4 networks in our model: Actor, Critic, Actor-target, Critic-target. Actor, Critic network can also be call policy network. The author make a small modification that the target network should be soft-update rather than directly copy the weights from the policy network. This will lead to tiny change to the target network and make the training more steady. The process of soft-update is as follows. First we need to define a parameter $\tau$, then we update all the weight in target network by calculate $\bm{w}_{target} = \tau \bm{w}_{policy} + (1 - \tau) \bm{w}_{target}$, where $w_{policy}$.
+If we only use single network, then we will find that the target value $y$ and the network we need to update is the same one, making the model easier to diverge. So a standalone target network is necessary. In another word, we have 4 networks in our model: Actor, Critic, Actor-target, Critic-target. Actor, Critic network can also be call policy network. The author made a small modification that the target network should be soft-update rather than directly copy the weights from the policy network. This will lead to tiny change to the target network and make the training more steady. The process of soft-update is as follows. First we need to define a parameter $\tau$, then we update all the weight in target network by calculate $\bm{w}_{target} = \tau \bm{w}_{policy} + (1 - \tau) \bm{w}_{target}$, where $\tau$ is 0.01 in our implementation.
 
 \mybold{Replay Memory Pool}
-In traditional deep learning, we usually have a training set to learn the model weights. While in DDPG, we also need to "build" a training set, called Replay Memory Pool. At every step, we store the current state, action, reward, next action ($s_i, a_i, r_i, s_{i+1}$) into the Replay Memory Pool. When learning, we sample a random mini-batch of $N$ transitions ($s_i, a_i, r_i, s_{i+1}$) from the Replay Memory Pool and use them to train our model. It need to point out that the pool size should be adjusted to fit with the job. If the pool size is too small, it means that we just learn from the recent transitions. If the pool size is too big, then it will waste storage space and learn slowly.
+In traditional deep learning, we usually have a training set to learn the model weights. While in DDPG, we also need to "build" a training set, called Replay Memory Pool. At every step, we store the current state, action, reward, next action ($s_i, a_i, r_i, s_{i+1}$) into the Replay Memory Pool. When learning, we sample a random mini-batch of $N$ transitions ($s_i, a_i, r_i, s_{i+1}$) from the Replay Memory Pool and use them to train our model. It needs to point out that the pool size should be adjusted to fit with the job. If the pool size is too small, it means that we just learn from the recent transitions. If the pool size is too big, then it will waste storage space and learn slowly.
 
 
 \section{Test Toolkit}
@@ -179,15 +181,15 @@ We use gym toolkit to assist us in training and testing. The gym library is a co
 
 \section{Basic Improvement}
 \mybold{Warm-up stage}At the beginning of the training, the Replay Memory Pool is too empty to satisfy a mini-batch. So we add a warm-up stage to fill in the Replay Memory Pool in advance. Owing to the untrained model weights, we suppose that random action is better in warm-up stage than using Actor output.
-\mybold{Noise decrease progressively}As we said above, noise is an essential part in the exploration period. It can prevent the agent to trap into local optimization and help it to find out the better weights. However, when learned for sufficient episode, noise will have a negative effect on convergence. So, we add a parameter epsilon $\epsilon$ to control the noise weight. In early episodes, the noise is big and as the training goes on, it weights will decrease until the minimum value is arrived. We use a simple exponential function to implement this process. The $\epsilon$ change curve is shown below.
+\mybold{Noise decrease progressively}As we said above, noise is an essential part in the exploration period. It can prevent the agent to trap into local optimization and help it to find out the better weights. However, when learned for sufficient episodes, noise will have a negative effect on convergence. So, we add a parameter epsilon $\epsilon$ to control the noise weight. In early episodes, the noise is loud and as the train goes on, it weights will decrease until the minimum value is arrived. We use a simple exponential function to implement this process. The $\epsilon$ change curve is shown below.
 
 \begin{center}
 \includegraphics[width=8cm]{epsilon.png}
-\captionof{figure}{Gym game: left is MountainCar, right is Pendulum}\label{fig:smiley}
+\captionof{figure}{x-axis is episode, y-axis is epsilon.}\label{fig:smiley}
 \end{center}
 
 \section{Experiment Environment}
-Pytorch is an open source machine learning framework that help us simplify the coding and accelerate the training process. It provides many defined network layers and network optimizer. We use Linear layer to build our model and Adam optimizer to learn the model weights.Other software and hardware environments are listed below.
+Pytorch is an open source machine learning framework that can help us simplify the coding and accelerate the training process. It provides many defined network layers and network optimizer. We use Linear layer to build our model and Adam optimizer to learn the model weights. Other software and hardware environments are listed below.
 \\\ \ Python:3.8.12
 \\\ \ Pytorch: 1.4.0+cu92
 \\\ \ Gym:0.21.0
@@ -195,15 +197,29 @@ Pytorch is an open source machine learning framework that help us simplify the c
 
 
 \chapter{Results}
-The result demos can be found in our GitHub repository. In the Pendulum game, we can find that the agent make action badly, but after some episode, it learned a better policy to do the game. It can make the pendulum swing up in a short time. As for the Mountain-Car game, the car almost remain in the valley, and after some learning, it can achieve the goal perfectly. The rewards in the training and testing period are show below.
+The result demos can be found in the \href{https://github.com/zeng798473532/DDPG-RL-final}{GitHub repository}. In the Pendulum game, we can find that the agent makes action badly at the very beginning, but after some episodes, it learned a better policy to do the game. It can make the pendulum swing up in a short time. As for the Mountain-Car game, the car almost remained in the valley initially, and after some learning, it can achieve the goal perfectly. The rewards in the training and testing period are show below.
 
+\begin{center}
+\includegraphics[width=8cm]{res1.png}
+\captionof{figure}{Pendulum rewards in training with OU and Gauss}\label{fig:res1}
+\end{center}
 
-As for the noise factor, we use Gauss and OU noise to compare the result. When considering the Pendulum game, we find that OU noise will make the action more wiggle. That is, the action will change frequently to maintain the pendulum swinging up. But Mountain-Car show similar with two noises.
+\begin{center}
+\includegraphics[width=8cm]{res2.png}
+\captionof{figure}{MountainCar rewards with OU in training and testing}\label{fig:res2}
+\end{center}
+
+\begin{center}
+\includegraphics[width=8cm]{res3.png}
+\captionof{figure}{MountainCar rewards with Gauss in training and testing}\label{fig:res3}
+\end{center}
+
+As for the noise factor, we use Gauss and OU noise to compare the results. When considering the Pendulum game, we find that Gauss noise will make the action more wiggle, just as the \href{https://github.com/zeng798473532/DDPG-RL-final/tree/main/wrapper/Testing-Pendulum-v1-Gauss-Gamma0.95-Tau0.01-2022-1-19}{demo video} shows. That is, the action will change frequently to maintain the pendulum swinging up. In regard of Mountain-Car, Gauss noise perform worse just like Fig.\ref{fig:res3}. It is too bad to learn a available policy. Gauss is a fully random noise, where every two noises are independent. Imagine trying to swim by nervously shaking your arms and legs in every direction in some chaotic and out of sync manner. That wouldn’t be very efficient to find a method to swim, would it? But OU noise has the characteristic that the next noise is based on the previous noise. It will make exploration in one direction for a distance. This is useful in the physics environment with momentum.
 
 
 
 \chapter{Summary and Discussion}
-In summary, DDPG is a pioneering algorithm in reinforce learning. It span the control problem in the continuous space and give a practice solution. In many fields, DDPG can play a vital role, such as robot control, automatic driving, modern team game and so on.
+In summary, DDPG is a pioneering algorithm in reinforce learning. It spans the control problem in the continuous space and give a practice solution. In many fields, DDPG can play a vital role, such as robot control, automatic driving, modern team game and so on.
 
 
 In the process of our reappearance, we also find some problems. For example, there is some probability that the rewards would suddenly slump when training. Second, some parameters should be changed to satisfy different missions. Third, there is still a question that whether these noise can help to escape from the local optimal solutions. We have to do more experiments to explore.
