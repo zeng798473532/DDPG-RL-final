@@ -2,14 +2,18 @@
 This is a reproduction of paper Continuous Control with Deep Reinforcement Learning
 
 File:
-    main.py
-    model.py
-    Replay_Memory.py
+
+main.py\
+model.py\
+Replay_Memory.py
+
 Folder:
-    models: some pretrain models weights
-    wrapper: video demo for pretrain models 
+
+models: some pretrain models weights\
+wrapper: video demo for pretrain models 
 
 Requirements:
+
 gym==0.21.0
 imageio==2.13.5
 imageio-ffmpeg==0.4.5
